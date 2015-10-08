@@ -10,11 +10,12 @@
 using namespace std;
 
 int main() {
+	cout<<"aasssdd"<<endl;
 	return 0;
 }
 
 
-int MatrizDeElastica::valorPosicion(int fila, int col){
+int valorPosicion(int fila, int col,int tamanio){
 	//Para i=0
 	if (fila==0){
 		if (col==0){
@@ -86,26 +87,28 @@ int MatrizDeElastica::valorPosicion(int fila, int col){
 		}
 	}
 
+	return 0;
+
 }
 
 
-Semilla* MatrizDeElastica::iteracion(Semilla* semilla, float parametroSOR){
+float* iteracion(float* semilla, float parametroSOR, int tamanio){
 	for(int i=0; i<tamanio;i++){
 		float sumaIzquierda=0, sumaDerecha=0;
 
 		for(int j=0; j<i-1; j++){
-			sumaIzquierda+=valorPosicion(i,j)*semilla->getP(j);
+			sumaIzquierda+=valorPosicion(i,j, tamanio)*semilla[j];
 		}
 
 		for(int j=i+1; j<tamanio; j++){
-			sumaDerecha+=valorPosicion(i,j)*semilla->getP(j);
+			sumaDerecha+=valorPosicion(i,j, tamanio)*semilla[j];
 		}
 
-		float gSeiden= ( (semilla->getP(i)) - sumaIzquierda - sumaDerecha)/valorPosicion(i,i);
+		float gSeiden= ( (semilla[i]) - sumaIzquierda - sumaDerecha)/valorPosicion(i,i, tamanio);
 		semilla[i] =( gSeiden * parametroSOR + gSeiden * (1-parametroSOR));
 	}
 
 	return semilla;
-
-
 }
+
+
