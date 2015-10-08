@@ -14,7 +14,7 @@ int main() {
 	return 0;
 }
 
-int calcularFi(int i, int tamanio, int g){
+float calcularFi(int i, int tamanio, int g){
 	float EI= exp(6*log(137));
 	float L=43.7;
 	cout<<EI;
@@ -27,7 +27,6 @@ int calcularFi(int i, int tamanio, int g){
 	cout<<"Hola";
 	return f;
 }
-
 
 int getValorPosicion(int fila, int col, int tamanio){
 	//Para i=0
@@ -180,9 +179,39 @@ int valorPosicion(int fila, int col,int tamanio){
 	return 0;
 
 }
+float* copiarSemilla(float* semilla,int tamanio){
+	float* nueva=new float[tamanio];
+	for(int i=0;i<tamanio;i++){
+		nueva[i]=semilla[i];
+	}
+	return nueva;
+}
 
+float normaInfinito(float* semilla, int tamanio){
+	float mayor=0;
+	for(int i=0;i<tamanio;i++){
+		if(semilla[i]>mayor){
+			mayor=semilla[i];
+		}
+	}
+	return mayor;
+}
+float* restaSemillas(float* semillaActual, float* semillaAnterior,int tamanio){
+	float* actual=copiarSemilla(semillaActual,tamanio);
+	for(int i=0;i<tamanio;i++){
+		actual[i]-=semillaAnterior[i];
+	}
+	return actual;
+}
+bool convergencia(float* semillaAnterior, float* semillaActual,int tamanio, float rTol){
+	float* resta=restaSemillas(semillaActual, semillaAnterior, tamanio);
+	float normaSuperior=normaInfinito(resta,tamanio);
+	delete [] resta;
+	float normaInferior=normaInfinito(semillaActual,tamanio);
+	return (normaSuperior/normaInferior)<=rTol;
+}
 
-float* iteracion(float* semilla, float parametroSOR, int tamanio){
+float* iteracion(float* semilla, float parametroSOR, int tamanio, float*vectorB){
 	for(int i=0; i<tamanio;i++){
 		float sumaIzquierda=0, sumaDerecha=0;
 
@@ -194,11 +223,9 @@ float* iteracion(float* semilla, float parametroSOR, int tamanio){
 			sumaDerecha+=valorPosicion(i,j, tamanio)*semilla[j];
 		}
 
-		float gSeiden= ( (semilla[i]) - sumaIzquierda - sumaDerecha)/valorPosicion(i,i, tamanio);
+		float gSeiden= ( vectorB[i] - sumaIzquierda - sumaDerecha)/valorPosicion(i,i, tamanio);
 		semilla[i] =( gSeiden * parametroSOR + gSeiden * (1-parametroSOR));
 	}
 
 	return semilla;
 }
-
-
