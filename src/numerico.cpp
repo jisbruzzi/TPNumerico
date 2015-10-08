@@ -14,6 +14,21 @@ int main() {
 	return 0;
 }
 
+int calcularFi(int i, int tamanio, int g){
+	float EI= exp(6*log(137));
+	float L=43.7;
+	cout<<EI;
+	cout<<L;
+
+	float x =(i*L)/tamanio;
+	float q = 5000 + g - 10*x*x + 450*x;
+	float f=(q/EI)*((L/tamanio)*(L/tamanio)*(L/tamanio)*(L/tamanio));
+
+	cout<<"Hola";
+	return f;
+}
+
+
 int getValorPosicion(int fila, int col, int tamanio){
 	//Para i=0
 	if (fila==0){
