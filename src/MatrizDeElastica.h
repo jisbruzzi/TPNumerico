@@ -9,11 +9,15 @@
 #define MATRIZDEELASTICA_H_
 #include "Semilla.h"
 class MatrizDeElastica {
+private:
+	int tamanio;
 public:
 	MatrizDeElastica(uint tamanio);
 	virtual ~MatrizDeElastica();
 	Semilla* iteracion(Semilla* semilla);
-	int valorPosicion(int fila,int columna);
+	int valorPosicion(uint fila,uint columna);
 };
+
+
 
 #endif /* MATRIZDEELASTICA_H_ */
