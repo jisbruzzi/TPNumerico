@@ -5,30 +5,52 @@
 // Copyright   : Your copyright notice
 // Description : Hello World in C++, Ansi-style
 //============================================================================
-
+#include <cmath>
 #include <iostream>
 using namespace std;
 
-int main() {
-	cout<<"aasssdd"<<endl;
-	return 0;
+
+
+void mostrarSemilla( float* v, int tamanio){
+	cout<<endl;
+	for(int i=0;i<tamanio;i++){
+		cout<<v[i]<<";"<<endl;
+	}
+	cout<<endl;
 }
 
 float calcularFi(int i, int tamanio, int g){
+	if(i==0 || i==tamanio-1){
+		return 0;
+	}
 	float EI= exp(6*log(137));
 	float L=43.7;
-	cout<<EI;
-	cout<<L;
 
 	float x =(i*L)/tamanio;
 	float q = 5000 + g - 10*x*x + 450*x;
 	float f=(q/EI)*((L/tamanio)*(L/tamanio)*(L/tamanio)*(L/tamanio));
 
-	cout<<"Hola";
 	return f;
 }
 
-int getValorPosicion(int fila, int col, int tamanio){
+float* generarSemilla(int tamanio){
+	float* s=new float[tamanio];
+	for(int i=0;i<tamanio;i++){
+		s[i]=0;
+	}
+	return s;
+}
+
+float* generarB(int tamanio,int g){
+	float* b=new float [tamanio];
+	for(int i=0;i<tamanio;i++){
+		b[i]=calcularFi(i,tamanio,g);
+	}
+	return b;
+}
+
+
+int valorPosicion(int fila, int col, int tamanio){
 	//Para i=0
 	if (fila==0){
 		if (col==0){
@@ -101,9 +123,10 @@ int getValorPosicion(int fila, int col, int tamanio){
 		}
 	}
 
+	return 0;
 }
 
-
+/*
 int valorPosicion(int fila, int col,int tamanio){
 	//Para i=0
 	if (fila==0){
@@ -179,6 +202,8 @@ int valorPosicion(int fila, int col,int tamanio){
 	return 0;
 
 }
+
+*/
 float* copiarSemilla(float* semilla,int tamanio){
 	float* nueva=new float[tamanio];
 	for(int i=0;i<tamanio;i++){
@@ -215,8 +240,9 @@ float* iteracion(float* semilla, float parametroSOR, int tamanio, float*vectorB)
 	for(int i=0; i<tamanio;i++){
 		float sumaIzquierda=0, sumaDerecha=0;
 
-		for(int j=0; j<i-1; j++){
+		for(int j=0; j<i; j++){
 			sumaIzquierda+=valorPosicion(i,j, tamanio)*semilla[j];
+
 		}
 
 		for(int j=i+1; j<tamanio; j++){
@@ -224,8 +250,57 @@ float* iteracion(float* semilla, float parametroSOR, int tamanio, float*vectorB)
 		}
 
 		float gSeiden= ( vectorB[i] - sumaIzquierda - sumaDerecha)/valorPosicion(i,i, tamanio);
-		semilla[i] =( gSeiden * parametroSOR + gSeiden * (1-parametroSOR));
+		semilla[i] =gSeiden;//( gSeiden * parametroSOR + gSeiden * (1-parametroSOR));
+
 	}
 
 	return semilla;
+}
+
+
+void resolver( int tamanio, float w, float rTol, int &iteraciones, int &milis, float* &solucion, float* &erroresRelativos){
+	float* b=generarB(tamanio,11);
+	float* xActual=generarSemilla(tamanio);
+	float* xAnterior=generarSemilla(tamanio);
+	int i=0;
+	do{
+		i++;
+		mostrarSemilla(xActual,tamanio);
+		delete[] xAnterior;
+		xAnterior=copiarSemilla(xActual,tamanio);
+		iteracion(xActual,w,tamanio,b);
+	}while(!convergencia(xAnterior,xActual,tamanio,rTol));
+	solucion=xActual;
+
+
+}
+
+void mostrarMatriz(int tamanio){
+	cout<<endl;
+	cout<<"----------------"<<endl;
+	for(int i=0;i<tamanio;i++){
+		for(int j=0;j<tamanio;j++){
+			cout<<valorPosicion(i,j, tamanio)<<";";
+		}
+		cout<<endl;
+	}
+	cout<<endl<<"-----------------"<<endl;
+}
+
+
+int main() {
+	int iteraciones, milis;
+	float* solucion, * errores;
+	mostrarMatriz(5);
+	mostrarSemilla(generarB(5,11),5);
+	cout<<"resolviendo:"<<endl;
+	resolver( 5, 1, 0.00001, iteraciones, milis, solucion, errores);
+	cout<<"final:"<<endl;
+	mostrarSemilla(solucion, 5);
+	return 0;
+	/*
+	 * Ésta matriz de 5x5 debería dar:
+	 * 0;-7/8;-3/2;-13/8;1
+	 * Y da cualquiera
+	 */
 }
