@@ -7,8 +7,10 @@
 //============================================================================
 #include <cmath>
 #include <iostream>
+#include <chrono>
+#include <fstream>
 using namespace std;
-
+using namespace std;
 
 
 void mostrarSemilla( float* v, int tamanio){
@@ -126,84 +128,6 @@ int valorPosicion(int fila, int col, int tamanio){
 	return 0;
 }
 
-/*
-int valorPosicion(int fila, int col,int tamanio){
-	//Para i=0
-	if (fila==0){
-		if (col==0){
-		return 1;
-		}
-		else{
-			return 0;
-		}
-	}
-
-	//Para i=1
-	if (fila==1){
-		if ((col==0) || (col==2)){
-			return -4;
-		}
-		if (col==1){
-			return 6;
-		}
-		if (col==3){
-			return 1;
-		}
-		else {
-			return 0;
-	}
-
-	//Para 1<i<n-1
-	if (fila>1 or fila<tamanio-1){
-			if (col==fila){
-				return 6;
-			}
-			if (col==(fila-1) || (col==(fila+1))){
-				return -4;
-			}
-			if (col==(fila-2) || (col==(fila+2))){
-				return 1;
-			}
-			else{
-				return 0;
-			}
-		}
-	}
-
-	//Para i=n-1
-	if (fila==tamanio-1){
-		if (col==(tamanio-3)){
-			return 1;
-		}
-		if (col==(tamanio-2)){
-			return -4;
-		}
-		if (col==(tamanio-1)){
-			return 5;
-		}
-		if (col==tamanio){
-			return -4;
-		}
-		else{
-			return 0;
-		}
-	}
-
-	//Para i=n
-	if (fila==tamanio){
-		if (col==tamanio){
-			return 1;
-		}
-		else{
-			return 0;
-		}
-	}
-
-	return 0;
-
-}
-
-*/
 float* copiarSemilla(float* semilla,int tamanio){
 	float* nueva=new float[tamanio];
 	for(int i=0;i<tamanio;i++){
@@ -215,8 +139,8 @@ float* copiarSemilla(float* semilla,int tamanio){
 float normaInfinito(float* semilla, int tamanio){
 	float mayor=0;
 	for(int i=0;i<tamanio;i++){
-		if(semilla[i]>mayor){
-			mayor=semilla[i];
+		if(abs(semilla[i])>mayor){
+			mayor=abs(semilla[i]);
 		}
 	}
 	return mayor;
@@ -250,29 +174,38 @@ float* iteracion(float* semilla, float parametroSOR, int tamanio, float*vectorB)
 		}
 
 		float gSeiden= ( vectorB[i] - sumaIzquierda - sumaDerecha)/valorPosicion(i,i, tamanio);
-		semilla[i] =gSeiden;//( gSeiden * parametroSOR + gSeiden * (1-parametroSOR));
+		semilla[i] =gSeiden * parametroSOR + semilla[i] * (1-parametroSOR);
 
 	}
 
 	return semilla;
 }
 
-
-void resolver( int tamanio, float w, float rTol, int &iteraciones, int &milis, float* &solucion, float* &erroresRelativos){
+/**
+ * Leandro, hacé que registre los errores relativos si y sólo si erroresRelativos!=NULL
+ * así ahorramos tiempo
+ */
+void resolver( int tamanio, float w, float rTol, int &iteraciones, int &nanos, float* &solucion, float* &erroresRelativos){
+	auto begin = std::chrono::high_resolution_clock::now();
 	float* b=generarB(tamanio,11);
 	float* xActual=generarSemilla(tamanio);
-	float* xAnterior=generarSemilla(tamanio);
+	float* xAnterior=NULL;
 	int i=0;
 	do{
-		i++;
-		mostrarSemilla(xActual,tamanio);
+
+		//mostrarSemilla(xActual,tamanio);
 		delete[] xAnterior;
 		xAnterior=copiarSemilla(xActual,tamanio);
 		iteracion(xActual,w,tamanio,b);
+		i++;
+		if(i>1000){
+			break;
+		}
 	}while(!convergencia(xAnterior,xActual,tamanio,rTol));
 	solucion=xActual;
-
-
+	iteraciones=i;
+	auto end = std::chrono::high_resolution_clock::now();
+	nanos=std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count();
 }
 
 void mostrarMatriz(int tamanio){
@@ -287,20 +220,75 @@ void mostrarMatriz(int tamanio){
 	cout<<endl<<"-----------------"<<endl;
 }
 
+void punto4(int tamanio, float wInicial, float wFinal, float wPaso,float rTol){
+	int cantidadDePruebas=(wFinal-wInicial)/wPaso+1;
+	float* wGuardados=new float[cantidadDePruebas];
+	float* milisGuardados=new float[cantidadDePruebas];
+	int* iteracionesGuardadas=new int[cantidadDePruebas];
+
+
+	float wActual=wInicial;
+	float wMejor=0;
+	float iteracionesMejor=1000;
+
+	int i=0;
+
+	while(wActual<wFinal){
+		int iteraciones, nanos;
+		float* solucion, *errores;
+		errores=NULL;
+		resolver(tamanio,wActual,rTol,iteraciones,nanos, solucion, errores);
+		delete[] solucion;
+		wGuardados[i]=wActual;
+		cout<<wActual<<endl;
+		milisGuardados[i]=(float) nanos/1000000;
+		iteracionesGuardadas[i]=iteraciones;
+		if(iteraciones<iteracionesMejor){
+			wMejor=wActual;
+			iteracionesMejor=iteraciones;
+		}
+		wActual+=wPaso;
+		i++;
+	}
+
+	ofstream archivo;
+	archivo.open("salidaNumerico.csv");
+	archivo<<"w";
+	for(int j=0;j<cantidadDePruebas;j++){
+		archivo<<","<<wGuardados[j];
+	}
+	archivo<<endl;
+
+	archivo<<"milis";
+	for(int j=0;j<cantidadDePruebas;j++){
+		archivo<<","<<milisGuardados[j];
+	}
+	archivo<<endl;
+
+	archivo<<"iteraciones";
+	for(int j=0;j<cantidadDePruebas;j++){
+		archivo<<","<<iteracionesGuardadas[j];
+	}
+	archivo<<endl;
+
+	archivo.close();
+
+	cout<<"El mejor w fue:"<<wMejor<<" con iteraciones:"<<iteracionesMejor;
+}
+
 
 int main() {
-	int iteraciones, milis;
-	float* solucion, * errores;
-	mostrarMatriz(5);
-	mostrarSemilla(generarB(5,11),5);
-	cout<<"resolviendo:"<<endl;
-	resolver( 5, 1, 0.00001, iteraciones, milis, solucion, errores);
-	cout<<"final:"<<endl;
-	mostrarSemilla(solucion, 5);
-	return 0;
+
 	/*
-	 * Ésta matriz de 5x5 debería dar:
-	 * 0;-7/8;-3/2;-13/8;1
-	 * Y da cualquiera
-	 */
+	int iteraciones, nanos;
+	float* solucion, * errores;
+	cout<<"resolviendo:"<<endl;
+	resolver( 100, 1, 0.01, iteraciones, nanos, solucion, errores);
+	cout<<"Solución:"<<endl;
+	mostrarSemilla(solucion, 100);
+	cout<<"tardé "<<(float) nanos/1000000<<" milisegundos"<<endl;
+	cout<<"hice "<<iteraciones<<" iteraciones";
+	*/
+	punto4(100,0.1,5,0.05,0.01);
+	return 0;
 }
