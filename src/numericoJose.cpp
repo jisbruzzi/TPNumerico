@@ -343,6 +343,14 @@ void punto7(int tamanio, float w, float rTol, float* &solucion,float pInicial, f
 	archivo.close();
 
 }
+void escribirSemilla(float* vector, int tamanio){
+	ofstream archivo;
+	archivo.open("ultimoEscribirSemilla.csv");
+	for(int i=0;i<tamanio;i++){
+		archivo<<vector[i]<<";"<<endl;
+	}
+	archivo.close();
+}
 
 
 int main() {
@@ -368,12 +376,15 @@ int main() {
 				cout<<"Solución:"<<endl;
 				mostrarSemilla(solucion, 100);
 	*/
-	//resolver( 101, 4.7, 0.0001, iteraciones, nanos, solucion,true);
+	resolver( 5, 1, 0.0001, iteraciones, nanos, solucion,true);
 	//punto7(5,1,0.00001,solucion,0.5,3,0.1);
 	//cout<<"Solución:"<<endl;
 	//mostrarSemilla(solucion, 101);
+	cout<<"iteraciones:"<<iteraciones<<endl;
+	mostrarSemilla(solucion,5);
+	escribirSemilla(solucion,5);
 
 
-	punto4(101,1,2,0.001,0.001);
+	//punto4(101,1,2,0.001,0.001);
 	return 0;
 }
