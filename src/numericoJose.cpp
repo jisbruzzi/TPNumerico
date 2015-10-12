@@ -30,6 +30,7 @@ float calcularFi(int i, int tamanio, int g){
 	const float EI = 137e6;
 	const float L = 43.7;
 	int n = tamanio-1;
+	float X = ((i*L)/n);
 	return ((5000 + numGrupo - 10*(pow(X,2)) + 450 * X)/EI) * pow((L/n),4);
 }
 
