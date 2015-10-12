@@ -241,55 +241,33 @@ void mostrarMatriz(int tamanio){
 }
 
 void punto4(int tamanio, float wInicial, float wFinal, float wPaso,float rTol){
-	int cantidadDePruebas=(wFinal-wInicial)/wPaso+1;
-	float* wGuardados=new float[cantidadDePruebas];
-	float* milisGuardados=new float[cantidadDePruebas];
-	int* iteracionesGuardadas=new int[cantidadDePruebas];
+	ofstream archivo;
+	archivo.open("salidaNumericoPunto4.csv");
+	archivo<<"w,milis,iteraciones"<<endl;
 
-
-	float wActual=wInicial;
 	float wMejor=0;
 	float iteracionesMejor=1000;
 
-	int i=0;
+	for(float w=wInicial;w<wFinal;w+=wPaso){
 
-	while(wActual<wFinal){
 		int iteraciones, nanos;
 		float* solucion, *errores;
 		errores=NULL;
-		resolver(tamanio,wActual,rTol,iteraciones,nanos, solucion, errores);
+
+		resolver(tamanio,w,rTol,iteraciones,nanos, solucion, errores);
 		delete[] solucion;
-		wGuardados[i]=wActual;
-		cout<<wActual<<endl;
-		milisGuardados[i]=(float) nanos/1000000;
-		iteracionesGuardadas[i]=iteraciones;
+
+		cout<<w<<endl;
+
 		if(iteraciones<iteracionesMejor){
-			wMejor=wActual;
+			wMejor=w;
 			iteracionesMejor=iteraciones;
 		}
-		wActual+=wPaso;
-		i++;
-	}
 
-	ofstream archivo;
-	archivo.open("salidaNumericoPunto4.csv");
-	archivo<<"w";
-	for(int j=0;j<cantidadDePruebas;j++){
-		archivo<<","<<wGuardados[j];
-	}
-	archivo<<endl;
+		archivo<<w<<","<<(float) nanos/1000000<<","<<iteraciones<<endl;
 
-	archivo<<"milis";
-	for(int j=0;j<cantidadDePruebas;j++){
-		archivo<<","<<milisGuardados[j];
-	}
-	archivo<<endl;
 
-	archivo<<"iteraciones";
-	for(int j=0;j<cantidadDePruebas;j++){
-		archivo<<","<<iteracionesGuardadas[j];
 	}
-	archivo<<endl;
 
 	archivo.close();
 
