@@ -4,7 +4,8 @@
 using namespace std;
 using namespace std;
 
-const int tamanio = 5;
+const int tamanio = 10;
+float rTol = 0.01;
 float vecFi[tamanio];
 float vecSemilla[tamanio];
 
@@ -88,6 +89,11 @@ int getValMatriz(int fila, int col){
 	}
 
 	return 0;
+	/**
+	 * Entra un chino a un quiosco atendido por un gallego.
+	 * El chino le dice "Chi hu mi nig li Marlboro?"
+	 * Y el gallego lo contesta... Que querés un atado de qué?
+	 */
 }
 
 void calcularFi(ofstream *archivo){
@@ -110,11 +116,26 @@ void calcularFi(ofstream *archivo){
 	*archivo<<endl;
 }
 
-void gaussSeidel(ofstream *archivo) {
+float getNormaInfinito(float* vector){
+	float norma=0;
+	for(int i=0;i<tamanio;i++){
+		if(abs(vector[i])>norma){
+			norma=abs(vector[i]);
+		}
+	}
+	return norma;
+}
+
+float calcularError(float alfa, float beta){
+	return abs(beta-alfa)/abs(beta);
+}
+
+float gaussSeidel() {
 	//Despejo X(i) y lo calculo con el valor de las semillas.
 	//Luego lo guardo como nuevo valor de semilla.
 
-	//float valorGaussSeidel = 0;
+	float valorGaussSeidel = 0;
+
 	for(int i=0; i<tamanio; i++){
 		int j=0;
 		float xi = 0;
@@ -126,53 +147,60 @@ void gaussSeidel(ofstream *archivo) {
 		}
 		xi = vecFi[i] + xi;
 		vecSemilla[i] = xi/getValMatriz(i,i);
-		//valorGaussSeidel = xi/getValMatriz(i,i);
+		valorGaussSeidel = xi/getValMatriz(i,i);
 	}
-	//return valorGaussSeidel;
-
-	/* Si agrego "ofstream *archivo" a este metodo puedo ver que andar bien
-	 * pero necesito que sea una funcion, asi que le saco el void para usarlo
-	 * en la ecuacion de SOR
-	 */
-
-	//Guardo X(i) en el CSV
-	*archivo<<"X(i) | Iteracion i";
-	for(int i=0;i<tamanio;i++){
-		*archivo<<";"<<vecSemilla[i];
-	}
-	*archivo<<endl;
+	return valorGaussSeidel;
 }
 
-void metodoSOR(int cantIteraciones, ofstream *archivo){
+void metodoSOR(float w, ofstream *archivo){
 	inicializarVector();
-	int i = 0;
+	float error = 1;
+	float sor;
+	float xi;
+	float xgs;
+	float alfa;
+	float beta;
 
-	//Prueba solo para ver que anda GaussSeidel
-	while(i<cantIteraciones){
-		gaussSeidel(archivo);
-		i++;
-	}
+	while(error>rTol){
+		alfa = getNormaInfinito(vecSemilla);
 
+		for(int i=0; i<tamanio; i++){
+			xi = vecSemilla[i]; //Valor de la iteracion anterior
+			xgs = gaussSeidel(); //Valor iteracion GS
 
-	/*
-	 * 	int j=0;
-	float w=1;
-	while(j<cantIteraciones) {
-		gaussSeidel();
-		//for(int i = 0; i<tamanio; i++){
-			//vecSemilla[i] = (1-w)*vecSemilla[i]+w*gaussSeidel();
-		//}
+			sor = (1-w)*xi + w*xgs;
+			vecSemilla[i] = sor;
+		}
 
-		//Guardo Iteraciones(i) en el CSV
+		beta = getNormaInfinito(vecSemilla);
+		error = calcularError(alfa, beta);
+
+		//Guardo X(i) en el CSV
 		*archivo<<"X(i) | Iteracion i";
 		for(int i=0;i<tamanio;i++){
 			*archivo<<";"<<vecSemilla[i];
 		}
 		*archivo<<endl;
 
-		j++;
+		//Guardo el error en el CSV
+		*archivo<<"Error";
+		*archivo<<";"<<error;
+		*archivo<<endl;
 	}
-	*/
+}
+
+void criterioDeCorte(ofstream *archivo){
+	float w=1;
+	while(w<2){
+		metodoSOR(w, archivo);
+
+		//Aviso el cambio de w en el CSV
+		*archivo<<"Valor de w:";
+		*archivo<<";"<<w;
+		*archivo<<endl;
+
+		w+=0.05;
+	}
 }
 
 int main() {
@@ -183,7 +211,7 @@ int main() {
 
 	//Todas las funciones del programa
 	calcularFi(&archivo);
-	metodoSOR(15, &archivo);
+	criterioDeCorte(&archivo);
 
 	//Pruebo que la matriz funciona
 	for(int i=0; i<tamanio; i++){
