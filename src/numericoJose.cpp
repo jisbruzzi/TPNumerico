@@ -26,14 +26,11 @@ float calcularFi(int i, int tamanio, int g){
 	if(i==0 || i==tamanio-1){
 		return 0;
 	}
-	float EI= 137*pow(10,6);
-	float L=43.7;
-
-	float x =(i*L)/(tamanio-1);
-	float q = 5000 + g - 10*x*x + 450*x;
-	float f=(q/EI)*pow(L/(tamanio-1),4);
-
-	return f;
+	const int numGrupo = 11;
+	const float EI = 137e6;
+	const float L = 43.7;
+	int n = tamanio-1;
+	return ((5000 + numGrupo - 10*(pow(X,2)) + 450 * X)/EI) * pow((L/n),4);
 }
 
 float* generarSemilla(int tamanio){
