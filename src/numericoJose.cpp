@@ -354,37 +354,6 @@ void escribirSemilla(float* vector, int tamanio){
 
 
 int main() {
-
-
-	int iteraciones, nanos;
-	float* solucion, * errores;
-	cout<<"-----b:"<<endl;
-	float* b=generarB(5,11);
-	mostrarSemilla(b,5);
-	mostrarMatriz(5);
-	/*
-	cout<<"resolviendo:"<<endl;
-	resolver( 100, 2.019, 0.0001, iteraciones, nanos, solucion, errores);
-		cout<<"Solución:"<<endl;
-		mostrarSemilla(solucion, 100);
-
-		resolver( 100, 1.2, 0.0001, iteraciones, nanos, solucion, errores);
-			cout<<"Solución:"<<endl;
-			mostrarSemilla(solucion, 100);
-
-			resolver( 100, 1.5, 0.0001, iteraciones, nanos, solucion, errores);
-				cout<<"Solución:"<<endl;
-				mostrarSemilla(solucion, 100);
-	*/
-	resolver( 5, 1, 0.0001, iteraciones, nanos, solucion,true);
-	//punto7(5,1,0.00001,solucion,0.5,3,0.1);
-	//cout<<"Solución:"<<endl;
-	//mostrarSemilla(solucion, 101);
-	cout<<"iteraciones:"<<iteraciones<<endl;
-	mostrarSemilla(solucion,5);
-	escribirSemilla(solucion,5);
-
-
-	//punto4(101,1,2,0.001,0.001);
+	punto4(6,1,2,0.05,0.01);
 	return 0;
 }
