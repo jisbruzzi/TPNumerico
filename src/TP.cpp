@@ -4,7 +4,7 @@
 using namespace std;
 using namespace std;
 
-const int tamanio = 10;
+const int tamanio = 4;
 float rTol = 0.01;
 float vecFi[tamanio];
 float vecSemilla[tamanio];
@@ -107,7 +107,6 @@ void calcularFi(ofstream *archivo){
 		float fi = ((5000 + numGrupo - 10*(pow(X,2)) + 450 * X)/EI) * pow((L/n),4);
 		vecFi[i] = fi;
 	}
-
 	//Guardo F(i) en el CSV
 	*archivo<<"F(i)";
 	for(int i=0;i<tamanio;i++){
@@ -134,64 +133,74 @@ float gaussSeidel() {
 	//Despejo X(i) y lo calculo con el valor de las semillas.
 	//Luego lo guardo como nuevo valor de semilla.
 
-	float valorGaussSeidel = 0;
+	float valorGaussSeidel;
+
+	for(int i=0; i<tamanio; i++){
+		cout<<vecSemilla[i]<<endl;
+	}
 
 	for(int i=0; i<tamanio; i++){
 		int j=0;
-		float xi = 0;
+		float xi=0;
+
 		while(j<tamanio){
 			if (i!=j){
-				xi = xi - (getValMatriz(i,j) * vecSemilla[j]);
+				xi+= getValMatriz(i,j) * vecSemilla[j];
 			}
 			j++;
 		}
-		xi = vecFi[i] + xi;
+		xi = vecFi[i] - xi;
 		vecSemilla[i] = xi/getValMatriz(i,i);
 		valorGaussSeidel = xi/getValMatriz(i,i);
+		cout<<"Iteracion: "<<valorGaussSeidel;
 	}
+	cout<<endl;
 	return valorGaussSeidel;
+
 }
 
 void metodoSOR(float w, ofstream *archivo){
-	inicializarVector();
 	float error = 1;
-	float sor;
-	float xi;
 	float xgs;
 	float alfa;
 	float beta;
 
-	while(error>rTol){
+	int j=0;
+	//while(error>rTol){
+	while(j<13){
+
 		alfa = getNormaInfinito(vecSemilla);
 
 		for(int i=0; i<tamanio; i++){
-			xi = vecSemilla[i]; //Valor de la iteracion anterior
 			xgs = gaussSeidel(); //Valor iteracion GS
+			vecSemilla[i] = xgs * w + vecSemilla[i] * (1-w);
 
-			sor = (1-w)*xi + w*xgs;
-			vecSemilla[i] = sor;
+			//Guardo X(i) en el CSV
+					*archivo<<"X(i) | Iteracion i";
+					for(int i=0;i<tamanio;i++){
+						*archivo<<";"<<vecSemilla[i];
+					}
+					*archivo<<endl;
+
 		}
 
 		beta = getNormaInfinito(vecSemilla);
 		error = calcularError(alfa, beta);
 
-		//Guardo X(i) en el CSV
-		*archivo<<"X(i) | Iteracion i";
-		for(int i=0;i<tamanio;i++){
-			*archivo<<";"<<vecSemilla[i];
-		}
-		*archivo<<endl;
+
 
 		//Guardo el error en el CSV
 		*archivo<<"Error";
 		*archivo<<";"<<error;
 		*archivo<<endl;
+		j++;
 	}
 }
 
 void criterioDeCorte(ofstream *archivo){
 	float w=1;
-	while(w<2){
+	//while(w<2){
+		inicializarVector();
 		metodoSOR(w, archivo);
 
 		//Aviso el cambio de w en el CSV
@@ -199,8 +208,8 @@ void criterioDeCorte(ofstream *archivo){
 		*archivo<<";"<<w;
 		*archivo<<endl;
 
-		w+=0.05;
-	}
+		//w+=0.05;
+	//}
 }
 
 int main() {
